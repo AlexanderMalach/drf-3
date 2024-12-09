@@ -60,38 +60,6 @@ class CourseViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
 
-class LessonViewSet(viewsets.ModelViewSet):
-    """
-    CRUD операции для уроков с проверкой прав.
-    """
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # Модераторы видят все уроки, пользователи — только свои
-        if self.request.user.groups.filter(name='Moderator').exists():
-            return Lesson.objects.all()
-        return Lesson.objects.filter(owner=self.request.user)
-
-    def perform_create(self, serializer):
-        # Запрет на создание уроков для модераторов
-        if self.request.user.groups.filter(name='Moderator').exists():
-            raise PermissionDenied("Модераторы не могут создавать уроки.")
-        serializer.save(owner=self.request.user)
-
-    def perform_destroy(self, instance):
-        # Запрет на удаление уроков для модераторов
-        if self.request.user.groups.filter(name='Moderator').exists():
-            raise PermissionDenied("Модераторы не могут удалять уроки.")
-        instance.delete()
-    def get_permissions(self):
-        if self.request.method in ['POST', 'DELETE']:
-            self.permission_classes = [~IsModerator]
-        else:
-            self.permission_classes = [IsAuthenticated]
-        return super().get_permissions()
-
 
 class LessonListCreateView(ListCreateAPIView):
     """
