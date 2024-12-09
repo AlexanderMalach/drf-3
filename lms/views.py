@@ -18,6 +18,13 @@ class CourseCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
         # Присваиваем владельца при создании курса
         serializer.save(owner=self.request.user)
+    def get_permissions(self):
+        if self.request.method in ['POST', 'DELETE']:
+            self.permission_classes = [~IsModerator]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+    
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -45,6 +52,12 @@ class CourseViewSet(viewsets.ModelViewSet):
         if self.request.user.groups.filter(name='Moderator').exists():
             raise PermissionDenied("Модераторы не могут удалять курсы.")
         instance.delete()
+    def get_permissions(self):
+        if self.request.method in ['POST', 'DELETE']:
+            self.permission_classes = [~IsModerator]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
 
 class LessonViewSet(viewsets.ModelViewSet):
@@ -72,6 +85,12 @@ class LessonViewSet(viewsets.ModelViewSet):
         if self.request.user.groups.filter(name='Moderator').exists():
             raise PermissionDenied("Модераторы не могут удалять уроки.")
         instance.delete()
+    def get_permissions(self):
+        if self.request.method in ['POST', 'DELETE']:
+            self.permission_classes = [~IsModerator]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
 
 class LessonListCreateView(ListCreateAPIView):
@@ -85,6 +104,12 @@ class LessonListCreateView(ListCreateAPIView):
     def perform_create(self, serializer):
         # Присваиваем владельца при создании урока
         serializer.save(owner=self.request.user)
+    def get_permissions(self):
+        if self.request.method in ['POST', 'DELETE']:
+            self.permission_classes = [~IsModerator]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
 
 class LessonDetailView(RetrieveUpdateDestroyAPIView):
@@ -94,3 +119,10 @@ class LessonDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.request.method in ['POST', 'DELETE']:
+            self.permission_classes = [~IsModerator]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
