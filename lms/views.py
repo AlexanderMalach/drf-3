@@ -53,8 +53,12 @@ class CourseViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Модераторы не могут удалять курсы.")
         instance.delete()
     def get_permissions(self):
-        if self.request.method in ['POST', 'DELETE']:
-            self.permission_classes = [~IsModerator]
+        if self.action == 'create':
+            self.permission_classes = [IsAuthenticated, ~IsModerator]
+        elif self.action in ('update', 'partial_update', 'retrieve'):
+            self.permission_classes = [IsOwner | IsModerator]
+        elif self.action == 'destroy':
+            self.permission_classes = [IsOwner]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
@@ -89,8 +93,10 @@ class LessonDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_permissions(self):
-        if self.request.method in ['POST', 'DELETE']:
-            self.permission_classes = [~IsModerator]
+        if self.request.method in ['PUT', 'PATCH', 'GET']:
+            self.permission_classes = [IsOwner | IsModerator]
+        elif self.request.method in ['DELETE']:
+            self.permission_classes = [IsOwner]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
